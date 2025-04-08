@@ -89,11 +89,10 @@ func ResolveField(
 			return nil, fmt.Errorf("field %s: failed to resolve reference: %w", fieldName, err)
 		}
 	} else if fieldCfg.Faker != "" {
-		val, err := faker.Generate(fieldCfg.Faker)
+		val, err = faker.Generate(fieldCfg.Faker)
 		if err != nil {
 			return nil, fmt.Errorf("field %s: failed to generate faker: %w", fieldName, err)
 		}
-		return val, nil
 	} else {
 		return nil, fmt.Errorf("field %s has no generation strategy defined", fieldName)
 	}
