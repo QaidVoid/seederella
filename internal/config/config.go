@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/yaml.v3"
 	"encoding/json"
+	"gopkg.in/yaml.v3"
 )
 
 type ColumnConfig struct {
@@ -17,11 +17,14 @@ type ColumnConfig struct {
 }
 
 type TableConfig struct {
-	Count  int                    `json:"count" yaml:"count"`
+	Count  int                     `json:"count" yaml:"count"`
 	Fields map[string]ColumnConfig `json:"fields" yaml:"fields"`
 }
 
 type Config struct {
+	Driver string                 `json:"driver" yaml:"driver"`
+	DSN    string                 `json:"dsn" yaml:"dsn"`
+	Schema string                 `json:"schema,omitempty" yaml:"schema,omitempty"`
 	Tables map[string]TableConfig `json:"tables" yaml:"tables"`
 }
 
@@ -43,6 +46,13 @@ func LoadConfig(path string) (*Config, error) {
 		}
 	default:
 		return nil, fmt.Errorf("unsupported config format: %s", path)
+	}
+
+	if cfg.Driver == "" {
+		return nil, fmt.Errorf("missing required field: driver")
+	}
+	if cfg.DSN == "" {
+		return nil, fmt.Errorf("missing required field: dsn")
 	}
 
 	return cfg, nil

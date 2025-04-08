@@ -1,8 +1,8 @@
 package config_test
 
 import (
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/QaidVoid/seederella/internal/config"
 )
