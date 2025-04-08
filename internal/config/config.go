@@ -14,6 +14,8 @@ type ColumnConfig struct {
 	Faker     string      `json:"faker,omitempty" yaml:"faker,omitempty"`
 	Value     interface{} `json:"value,omitempty" yaml:"value,omitempty"`
 	Reference string      `json:"reference,omitempty" yaml:"reference,omitempty"`
+	SameAs    string      `json:"same_as,omitempty" yaml:"same_as,omitempty"`
+	Transform string      `json:"transform,omitempty" yaml:"transform,omitempty"`
 }
 
 type TableConfig struct {
@@ -46,13 +48,6 @@ func LoadConfig(path string) (*Config, error) {
 		}
 	default:
 		return nil, fmt.Errorf("unsupported config format: %s", path)
-	}
-
-	if cfg.Driver == "" {
-		return nil, fmt.Errorf("missing required field: driver")
-	}
-	if cfg.DSN == "" {
-		return nil, fmt.Errorf("missing required field: dsn")
 	}
 
 	return cfg, nil
