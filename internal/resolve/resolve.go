@@ -1,8 +1,10 @@
 package resolve
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/QaidVoid/seederella/internal/config"
 	"github.com/QaidVoid/seederella/internal/db"
@@ -68,15 +70,40 @@ func SortFields(fields map[string]config.ColumnConfig) ([]string, error) {
 //
 // Returns the resolved value or an error if resolution fails.
 func ResolveField(
+	tableName string,
 	fieldName string,
 	fieldCfg config.ColumnConfig,
 	rowData map[string]any,
 	inserted map[string][]map[string]any,
+	sqlDB *sql.DB,
+	driver string,
 ) (any, error) {
 	var val any
 	var err error
 
-	if fieldCfg.Value != nil {
+	if fieldCfg.Faker != "" {
+		for {
+			val, err = faker.Generate(fieldCfg.Faker)
+			if err != nil {
+				return nil, fmt.Errorf("field %s: failed to generate faker: %w", fieldName, err)
+			}
+
+			var exists = false
+			if fieldCfg.Unique {
+				exists, err = db.CheckUniqueValue(sqlDB, driver, tableName, fieldName, val)
+				if err != nil {
+					return nil, fmt.Errorf("error checking unique value for field %s: %w", fieldName, err)
+				}
+			}
+
+			if !exists {
+				break
+			}
+
+			fmt.Printf("Field %s value '%v' already exists in the database. Retrying...\n", fieldName, val)
+			time.Sleep(time.Millisecond * 10)
+		}
+	} else if fieldCfg.Value != nil {
 		val = fieldCfg.Value
 	} else if fieldCfg.SameAs != "" {
 		val, err = resolveSameAs(fieldCfg.SameAs, rowData)
@@ -87,11 +114,6 @@ func ResolveField(
 		val, err = db.ResolveReference(fieldCfg.Reference, inserted)
 		if err != nil {
 			return nil, fmt.Errorf("field %s: failed to resolve reference: %w", fieldName, err)
-		}
-	} else if fieldCfg.Faker != "" {
-		val, err = faker.Generate(fieldCfg.Faker)
-		if err != nil {
-			return nil, fmt.Errorf("field %s: failed to generate faker: %w", fieldName, err)
 		}
 	} else {
 		return nil, fmt.Errorf("field %s has no generation strategy defined", fieldName)

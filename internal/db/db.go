@@ -26,3 +26,24 @@ func Connect(driver, dsn string, schema string) (*sql.DB, error) {
 	}
 	return db, nil
 }
+
+func CheckUniqueValue(db *sql.DB, driver, table, field string, value any) (bool, error) {
+	var query string
+
+	switch driver {
+	case "postgres":
+		query = fmt.Sprintf(`SELECT 1 FROM "%s" WHERE "%s" = $1 LIMIT 1`, table, field)
+	case "mysql", "sqlite":
+		query = fmt.Sprintf("SELECT 1 FROM `%s` WHERE `%s` = ? LIMIT 1", table, field)
+	default:
+		return false, fmt.Errorf("unsupported driver: %s", driver)
+	}
+
+	var exists bool
+	err := db.QueryRow(query, value).Scan(&exists)
+	if err != nil && err != sql.ErrNoRows {
+		return false, fmt.Errorf("failed to check unique value for field '%s' in table '%s': %w", field, table, err)
+	}
+
+	return exists, nil
+}

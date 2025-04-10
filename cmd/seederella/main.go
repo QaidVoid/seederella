@@ -71,7 +71,7 @@ var rootCmd = &cobra.Command{
 				idx := 1
 				for _, colName := range colOrder {
 					colCfg := table.Fields[colName]
-					val, err := resolve.ResolveField(colName, colCfg, rowData, inserted)
+					val, err := resolve.ResolveField(tableName, colName, colCfg, rowData, inserted, sqlDB, cfg.Driver)
 					if err != nil {
 						log.Fatalf("❌ Field resolution failed (%s.%s): %v", tableName, colName, err)
 					}

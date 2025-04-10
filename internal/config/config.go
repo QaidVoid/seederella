@@ -16,6 +16,7 @@ type ColumnConfig struct {
 	Reference string      `json:"reference,omitempty" yaml:"reference,omitempty"`
 	SameAs    string      `json:"same_as,omitempty" yaml:"same_as,omitempty"`
 	Transform string      `json:"transform,omitempty" yaml:"transform,omitempty"`
+	Unique    bool        `json:"unique,omitempty" yaml:"unique,omitempty"`
 }
 
 type TableConfig struct {
