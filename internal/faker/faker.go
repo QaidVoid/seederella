@@ -2,6 +2,8 @@ package faker
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/brianvoe/gofakeit/v7"
 )
@@ -10,7 +12,42 @@ func Init() {
 	gofakeit.Seed(0) // seed once at app start
 }
 
-func Generate(field string) (any, error) {
+func generateParagraph(params []string) string {
+	paragraphCount := 2
+	sentenceCount := 5
+	wordCount := 10
+	separator := " "
+
+	if len(params) > 0 {
+		if val, err := strconv.Atoi(params[0]); err == nil {
+			paragraphCount = val
+		}
+	}
+	if len(params) > 1 {
+		if val, err := strconv.Atoi(params[1]); err == nil {
+			sentenceCount = val
+		}
+	}
+	if len(params) > 2 {
+		if val, err := strconv.Atoi(params[2]); err == nil {
+			wordCount = val
+		}
+	}
+	if len(params) > 3 {
+		separator = params[3]
+	}
+	return gofakeit.Paragraph(paragraphCount, sentenceCount, wordCount, separator)
+}
+
+func Generate(fieldSpec string) (any, error) {
+	parts := strings.Split(fieldSpec, ":")
+	field := parts[0]
+
+	var params []string
+	if len(parts) > 1 {
+		params = strings.Split(parts[1], ";")
+	}
+
 	switch field {
 	case "first_name":
 		return gofakeit.FirstName(), nil
@@ -18,6 +55,8 @@ func Generate(field string) (any, error) {
 		return gofakeit.LastName(), nil
 	case "name":
 		return gofakeit.Name(), nil
+	case "word":
+		return gofakeit.Word(), nil
 	case "username":
 		return gofakeit.Username(), nil
 	case "email":
@@ -35,9 +74,15 @@ func Generate(field string) (any, error) {
 	case "zip":
 		return gofakeit.Zip(), nil
 	case "sentence":
-		return gofakeit.Sentence(5), nil
+		count := 5
+		if len(params) > 0 {
+			if val, err := strconv.Atoi(params[0]); err == nil {
+				count = val
+			}
+		}
+		return gofakeit.Sentence(count), nil
 	case "paragraph":
-		return gofakeit.Paragraph(2, 5, 10, " "), nil
+		return generateParagraph(params), nil
 	case "uuid":
 		return gofakeit.UUID(), nil
 	case "int":
@@ -51,6 +96,6 @@ func Generate(field string) (any, error) {
 	case "date_past":
 		return gofakeit.PastDate(), nil
 	default:
-		return nil, fmt.Errorf("unsupported faker field: %s", field)
+		return nil, fmt.Errorf("unsupported faker field: %s", fieldSpec)
 	}
 }
